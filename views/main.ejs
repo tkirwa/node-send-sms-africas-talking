@@ -1,0 +1,90 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <title>Web APP test</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.3.0/jquery.min.js"></script>
+<style>
+    .card{
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        -ms-transform: translateY(-50%);
+        transform: translateY(-50%);       
+    }
+
+</style>
+</head>
+<body>
+    <div class="d-flex justify-content-center">  
+        <div class='card d-flex align-self-center'>
+            <div class='card-content'>
+                <div class='card-header'>
+                     <h4 class='card-title'>Enter details to send SMS</h4>
+                </div>
+                <div class='card-body shadow'>
+                    <form id='frm-sms' method="post" action="/">
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input id='smsPhone' type="number" name="smsPhone" class="form-control" placeholder="2547XXXXXXXX" maxlength='12' />
+                        </div> 
+                        <div class="form-group">
+                            <label>Message</label>
+                            <textarea id='smsMessage' name="smsMessage" class="form-control" placeholder="Type SMS Message" maxlength="400" rows="5"></textarea>
+                        </div>         
+                        <div id='sms-results'>
+
+                        </div>       
+                        <div class="form-group">
+                            <input id='btnSubmit' type="submit" name="btnSubmit" class="btn btn-danger btn-rounded" value="Submit Request" />
+                        </div>
+                    </form>                     
+                </div>
+            </div>
+        </div> 
+    </div>
+</body>
+<script>
+    $('#frm-sms').submit(function(e) {
+        e.preventDefault();
+        let phone = $('#smsPhone').val();
+        let message = $('#smsMessage').val();
+        let errors = [];
+        if(phone.length<10){
+            errors.push('Please enter a valid phone number');
+        }
+        if(message.length<6){
+            errors.push('Please enter SMS message longer than 6 characters');
+        }
+
+        if(errors.length>0){
+            let err_message = errors.join('<br>');
+            $('#sms-results').html(`<div class="alert alert-danger">${err_message}</div>`);
+            return;
+        }
+        $('#sms-results').html(`<div class="alert alert-info">Please wait...</div>`);
+        var dataString = $(this).serialize();    
+        $.ajax({
+            type: "POST",
+            url: "/",
+            data: dataString,
+            success: function(result) {
+                let data = JSON.parse(result);
+                $("#btnSubmit").attr("disabled", false);                   
+                if (data.sent) {                      
+                    $('#sms-results').html(`<div class="alert alert-success">SMS Message has been sent</div>`);
+                } else {
+                    $('#sms-results').html(`<div class="alert alert-warning">Unable to send SMS: ${data.message}</div>`);
+                }
+            },
+            error: function(err) {             
+                $("#btnSubmit").attr("disabled", false);
+                $('#sms-results').html(`<div class="alert alert-danger">Unable to submit your request. Please try again later.</div>`);
+            }
+        });
+
+    })
+</script>
+
+</html>
